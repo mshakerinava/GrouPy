@@ -97,7 +97,26 @@ def make_c6_p6_indices(ksize):
     return li.astype('int32')
 
 
-def make_d6_p6m_indices(ksize):
+def make_c3_p3_indices(ksize):
+    assert ksize % 2 == 1  # TODO
+
+    from groupy.gfunc.p3_axial_func_array import P3FuncArray
+    import groupy.garray.p3_array as p3a
+    import groupy.garray.C3_array as c3a
+
+    x = np.random.randn(3, ksize, ksize)
+
+    f = P3FuncArray(v=x)
+
+    li = f.left_translation_indices(c3a.C3.flatten()[:, None, None, None])
+    # Set invalid indices to the weight which is known to be zero.
+    li[np.min(li[..., -2:], axis=-1) < 0, :] = np.zeros(li.shape[-1])
+    li[np.max(li[..., -2:], axis=-1) >=ksize, :] = np.zeros(li.shape[-1])
+
+    return li.astype('int32')
+
+
+def make_d3_p6m_indices(ksize):
     assert ksize % 2 == 1  # TODO
 
     from groupy.gfunc.p6m_axial_func_array import P6MFuncArray
@@ -131,6 +150,27 @@ def make_c6_z2_indices(ksize):
     r = np.zeros(uv.shape[:-1] + (1,))
     ruv = np.c_[r, uv]
     
+    # Set invalid indices to the weight which is known to be zero.    
+    ruv[np.min(ruv[..., -2:], axis=-1) < 0, :] = np.zeros(ruv.shape[-1])
+    ruv[np.max(ruv[..., -2:], axis=-1) >=ksize, :] = np.zeros(ruv.shape[-1])
+
+    return ruv.astype('int32')
+
+
+def make_c3_z2_indices(ksize):
+    import groupy.garray.p3_array as p3a
+    import groupy.garray.C3_array as c3a
+
+    assert ksize % 2 == 1, "Only uneven filters are supported"
+
+    x = np.random.randn(1, ksize, ksize)
+    f = Z2FuncArray(v=x)
+
+    uv = f.left_translation_indices(c3a.C3.flatten()[:, None, None, None])
+
+    r = np.zeros(uv.shape[:-1] + (1,))
+    ruv = np.c_[r, uv]
+
     # Set invalid indices to the weight which is known to be zero.    
     ruv[np.min(ruv[..., -2:], axis=-1) < 0, :] = np.zeros(ruv.shape[-1])
     ruv[np.max(ruv[..., -2:], axis=-1) >=ksize, :] = np.zeros(ruv.shape[-1])
